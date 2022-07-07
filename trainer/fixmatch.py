@@ -83,7 +83,7 @@ class FixMatch(Trainer):
         inputs_x, targets_x = data_x
         inputs_x = inputs_x[0]
         inputs_u, targets_u = data_u
-        inputs_u_w, inputs_u_s, _ = inputs_u
+        inputs_u_w, inputs_u_s = inputs_u
 
         batch_size = inputs_x.shape[0]
         targets_x = targets_x.to(self.device)
