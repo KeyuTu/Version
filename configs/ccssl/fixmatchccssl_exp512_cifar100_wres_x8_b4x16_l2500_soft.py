@@ -54,7 +54,7 @@ cifar100_std = (0.2675, 0.2565, 0.2761)
 
 data = dict(
     # CIFAR10SSL, CIFAR100SSL
-    type="CIFAR10SSL",
+    type="CIFAR100SSL",
     num_workers=4,
     num_labeled=250,
     num_classes=num_classes,

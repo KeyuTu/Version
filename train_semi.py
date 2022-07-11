@@ -164,8 +164,7 @@ def main():
 
     # make dataset
     #labeled_dataset, unlabeled_dataset, test_dataset = dataset_builder.build(cfg.data)
-    labeled_dataset, unlabeled_dataset, test_dataset = dataset_builder.build(
-        cfg.data)
+    labeled_dataset, unlabeled_dataset, test_dataset = dataset_builder.build(cfg.data)
 
     if args.local_rank == 0:
         torch.distributed.barrier()

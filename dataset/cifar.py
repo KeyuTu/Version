@@ -111,6 +111,7 @@ def x_u_split(args, labels):
     labeled_idx = []
     # unlabeled data: all data (https://github.com/kekmodel/FixMatch-pytorch/issues/10)
     unlabeled_idx = np.array(range(len(labels)))
+    # num_classes = 100
     for i in range(args.num_classes):
         idx = np.where(labels == i)[0]
         idx = np.random.choice(idx, label_per_class, False)

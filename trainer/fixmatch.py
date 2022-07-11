@@ -149,3 +149,4 @@ class FixMatch(Trainer):
             "pseudo_acc": pseudo_label_acc,
         }
         return loss_dict
+        
