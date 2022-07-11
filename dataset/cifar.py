@@ -36,6 +36,7 @@ thanks!
 
 # split CIFAR10 into labled/unlabed/val set
 def get_cifar10(args, root):
+    print('use CIFAR10')
     transform_labeled = transforms.Compose([
         transforms.RandomHorizontalFlip(),
         transforms.RandomCrop(size=32,
@@ -81,6 +82,7 @@ def get_cifar100(args, root):
         transforms.ToTensor(),
         transforms.Normalize(mean=cifar100_mean, std=cifar100_std)])
 
+    print('use CIFAR100')
     base_dataset = datasets.CIFAR100(
         root, train=True, download=True)
 

@@ -147,13 +147,13 @@ class FixMatchCCSSL(Trainer):
                 if self.cfg.get("contrast_left_out", False):
                     with torch.no_grad():
                         select_matrix = self.contrast_left_out(max_probs)
-                    print('contrast_with_softlabel=True contrast_left_out=True')
+                    # print('contrast_with_softlabel=True contrast_left_out=True')
                     Lcontrast = self.loss_contrast(
                         features, max_probs, labels, select_matrix=select_matrix)
 
                 elif self.cfg.get("contrast_with_thresh", False):
                     contrast_mask = max_probs.ge(self.cfg.contrast_with_thresh).float()
-                    print('contrast_with_softlabel=True contrast_with_thresh=True')
+                    # print('contrast_with_softlabel=True contrast_with_thresh=True')
                     Lcontrast = self.loss_contrast(
                         features, max_probs, labels, reduction=None)
                     Lcontrast = (Lcontrast * contrast_mask).mean()
@@ -166,11 +166,11 @@ class FixMatchCCSSL(Trainer):
                 if self.cfg.get("contrast_left_out", False):
                     with torch.no_grad():
                         select_matrix = self.contrast_left_out(max_probs)
-                    print('contrast_with_softlabel=False contrast_left_out=True')
+                    # print('contrast_with_softlabel=False contrast_left_out=True')
                     Lcontrast = self.loss_contrast(
                         features, labels, select_matrix=select_matrix)
                 else:
-                    print('contrast_with_softlabel=False contrast_left_out=False')
+                    # print('contrast_with_softlabel=False contrast_left_out=False')
                     Lcontrast = self.loss_contrast(features, labels)
 
         else:
