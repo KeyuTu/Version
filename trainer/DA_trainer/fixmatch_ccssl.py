@@ -32,12 +32,9 @@ class FixMatchCCSSL(Trainer):
             from apex import amp
             self.amp = amp
 
-        self.contrast_with_labeled = self.all_cfg.get("contrast_with_labeled",
-                                                      False)
-        self.contrast_with_threshold = self.cfg.get("contrast_with_threshold",
-                                                    False)
-        self.contrast_with_softlabel = self.cfg.get("contrast_with_softlabel",
-                                                    False)
+        self.contrast_with_labeled = self.all_cfg.get("contrast_with_labeled", False)
+        self.contrast_with_threshold = self.cfg.get("contrast_with_threshold", False)
+        self.contrast_with_softlabel = self.cfg.get("contrast_with_softlabel", False)
         # loss for supervised branch
         self.loss_x = loss_builder.build(cfg.loss_x)
         # loss for unsupervised branch
@@ -49,14 +46,12 @@ class FixMatchCCSSL(Trainer):
             #     temperature=self.cfg.temperature)
         # else:
         #     self.loss_contrast = SupConLoss(temperature=self.cfg.temperature)
-        self.loss_contrast = SoftSupConLoss(
-            temperature=self.cfg.temperature)
+        self.loss_contrast = SoftSupConLoss(temperature=self.cfg.temperature)
 
         # pseudo with ema, this will intrige bad results and not used in paper
         self.pseudo_with_ema = False
         if self.all_cfg.get("ema", False):
-            self.pseudo_with_ema = self.all_cfg.ema.get(
-                "pseudo_with_ema", False)
+            self.pseudo_with_ema = self.all_cfg.ema.get("pseudo_with_ema", False)
 
         # distribution alignment mentioned in paper
         self.da = False
@@ -133,8 +128,7 @@ class FixMatchCCSSL(Trainer):
         max_probs, p_targets_u = torch.max(probs_u_w, dim=-1)
         # filter out low confidence pseudo label by self.cfg.threshold
         mask = max_probs.ge(self.cfg.threshold).float()
-        Lu = (self.loss_u(logits_u_s, p_targets_u, reduction='none') *
-              mask).mean()
+        Lu = (self.loss_u(logits_u_s, p_targets_u, reduction='none') * mask).mean()
         # Lu = loss for fixmatch
 
         # for supervised contrastive
@@ -150,27 +144,23 @@ class FixMatchCCSSL(Trainer):
                     with torch.no_grad():
                         select_matrix = self.contrast_left_out(max_probs)
                     # print('contrast_with_softlabel=True contrast_left_out=True')
-                    Lcontrast = self.loss_contrast(
-                        features, max_probs, labels, select_matrix=select_matrix)
+                    Lcontrast = self.loss_contrast(features, max_probs, labels, select_matrix=select_matrix)
 
                 elif self.cfg.get("contrast_with_thresh", False):
                     contrast_mask = max_probs.ge(self.cfg.contrast_with_thresh).float()
                     # print('contrast_with_softlabel=True contrast_with_thresh=True')
-                    Lcontrast = self.loss_contrast(
-                        features, max_probs, labels, reduction=None)
+                    Lcontrast = self.loss_contrast(features, max_probs, labels, reduction=None)
                     Lcontrast = (Lcontrast * contrast_mask).mean()
 
                 else:
                     # entrance
-                    Lcontrast = self.loss_contrast(
-                        features, max_probs, labels)
+                    Lcontrast = self.loss_contrast(features, max_probs, labels)
             else:
                 if self.cfg.get("contrast_left_out", False):
                     with torch.no_grad():
                         select_matrix = self.contrast_left_out(max_probs)
                     # print('contrast_with_softlabel=False contrast_left_out=True')
-                    Lcontrast = self.loss_contrast(
-                        features, labels, select_matrix=select_matrix)
+                    Lcontrast = self.loss_contrast(features, labels, select_matrix=select_matrix)
                 else:
                     # print('contrast_with_softlabel=False contrast_left_out=False')
                     Lcontrast = self.loss_contrast(features, labels)

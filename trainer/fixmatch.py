@@ -91,12 +91,14 @@ class FixMatch(Trainer):
         # whether use ema on pseudo labels, the performance
         # is lower according to our experiments
         if self.pseudo_with_ema:
+            print("use ema")
             # for ema pseudo label
             logits_x= model(inputs_x.to(self.device))
             logits_u_s = model(inputs_u_s.to(self.device))
 
             logits_u_w = ema_model(inputs_u_w.to(self.device))
         else:
+            # print("not use ema")
             inputs = torch.cat([inputs_x, inputs_u_w, inputs_u_s],
                                dim=0).to(self.device)
             logits = model(inputs)
@@ -104,8 +106,6 @@ class FixMatch(Trainer):
             logits_u_w, logits_u_s = torch.tensor(logits[batch_size:]).chunk(2)
             del logits
 
-        # print(fe.shape)
-        # exit()
 
         # supervised loss
         Lx = self.loss_x(logits_x, targets_x, reduction='mean')
