@@ -1,14 +1,17 @@
+# from numpy import deprecate_with_doc
+
+
 train = dict(eval_step=1024,
              total_steps=1024*512,
              trainer=dict(type="FixMatch",
-                          threshold=0.6,
+                          threshold=0.95,
                           T=1.,
-                          temperature=0.07,
+                          # temperature=0.07,
                           lambda_u=1., # lambda_u
-                          lambda_contrast=2, # lambda_c
-                          contrast_with_softlabel=True,
-                          contrast_left_out=True,
-                          contrast_with_thresh=0.9, # T_push
+                          # lambda_contrast=2, # lambda_c
+                          # contrast_with_softlabel=True,
+                          # contrast_left_out=True,
+                          # contrast_with_thresh=0.9, # T_push
                           loss_x=dict(
                               type="cross_entropy",
                               reduction="mean"),
@@ -16,28 +19,27 @@ train = dict(eval_step=1024,
                               type="cross_entropy",
                               reduction="none"),
                           ))
-num_classes = 810
-seed = 1
+num_classes = 128
+# seed = 1
 
 model = dict(
-     type="resnet50",
-     low_dim=64,
-     num_class=num_classes,
-     proj=True,
-     width=1,
-     in_channel=3
+     type="wideresnet",
+     depth=28,
+     num_classes=num_classes,
+     widen_factor=2,
+     dropout=0
 )
 
-seminat_mean = [0.4732, 0.4828, 0.3779]
-seminat_std = [0.2348, 0.2243, 0.2408]
+seminat_mean = (0.4732, 0.4828, 0.3779)
+seminat_std = (0.2348, 0.2243, 0.2408)
 
 data = dict(
     type="DomainNet",
-    num_workers=5,
-    batch_size=1,
-    l_anno_file="./data/multi/l_train/anno.txt",
-    u_anno_file="./data/multi/u_train/u_train.txt",
-    v_anno_file="./data/multi/val/anno.txt",
+    num_workers=1,
+    batch_size=12,
+    l_anno_file="/data/tuky/DATASET/multi/l_train/anno.txt",
+    u_anno_file="/data/tuky/DATASET/multi/u_train/u_train.txt",
+    v_anno_file="/data/tuky/DATASET/multi/val/anno.txt",
     mu=7,
 
     lpipelines=[[
@@ -93,9 +95,9 @@ ema = dict(use=True, pseudo_with_ema=False, decay=0.999)
 #"See details at https://nvidia.github.io/apex/amp.html
 amp = dict(use=False, opt_level="O1")
 
-log = dict(interval=50)
-ckpt = dict(interval=1)
-evaluation = dict(eval_both=True)
+log = dict(interval=1)
+ckpt = dict(interval=1000)
+# evaluation = dict(eval_both=True)
 
 # optimizer
 optimizer = dict(type='SGD', lr=0.03, momentum=0.9, weight_decay=0.001, nesterov=True)

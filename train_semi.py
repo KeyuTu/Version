@@ -216,6 +216,7 @@ def main():
     # set ema
     args.use_ema = False
     ema_model = None
+    # NOT USE EMA
     if cfg.get("ema", False) and cfg.ema.use:
         args.use_ema = True
         from models.ema import ModelEMA
