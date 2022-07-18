@@ -207,6 +207,7 @@ class ResNet(nn.Module):
         if self.proj:
             feat = F.relu(self.fc1(feat))
             feat = self.fc2(feat)
+            # feat = [bz, low_dim]
         # else:
         #     feat = self.fc(feat)
             feat = self.l2norm(feat)

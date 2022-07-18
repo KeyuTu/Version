@@ -73,7 +73,8 @@ data = dict(
              padding=int(32 * 0.125),
              padding_mode='reflect'),
         dict(type="ToTensor"),
-        dict(type="Normalize", mean=cifar10_mean, std=cifar10_std)],[
+        dict(type="Normalize", mean=cifar10_mean, std=cifar10_std)],
+        [
         dict(type="RandomHorizontalFlip"),
         dict(type="RandomCrop",
              size=32,

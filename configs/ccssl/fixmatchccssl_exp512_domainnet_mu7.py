@@ -56,9 +56,9 @@ data = dict(
     type="DomainNet",
     num_workers=1,
     batch_size=4,
-    l_anno_file="./data/multi/l_train/anno.txt",
-    u_anno_file="./data/multi/u_train/u_train.txt",
-    v_anno_file="./data/multi/val/anno.txt",
+    l_anno_file="/data/tuky/DATASET/multi/l_train/anno.txt",
+    u_anno_file="/data/tuky/DATASET/multi/u_train/u_train.txt",
+    v_anno_file="/data/tuky/DATASET/multi/val/anno.txt",
     mu=7,
 
     lpipelines=[[

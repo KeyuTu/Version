@@ -98,7 +98,7 @@ class FixMatch(Trainer):
 
             logits_u_w = ema_model(inputs_u_w.to(self.device))
         else:
-            # print("not use ema")
+            # entrance NOT USE EMA
             inputs = torch.cat([inputs_x, inputs_u_w, inputs_u_s],
                                dim=0).to(self.device)
             logits = model(inputs)

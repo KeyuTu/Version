@@ -11,6 +11,7 @@ from .comatch import CoMatch
 from .fixmatch import FixMatch
 from .fixmatch_ccssl import FixMatchCCSSL
 from .comatch_ccssl import CoMatchCCSSL
+from .PCL import PCL
 
 # meta archs for all trainers
 meta_archs = {
@@ -19,6 +20,7 @@ meta_archs = {
     "Classifier": Classifier,
     "FixMatchCCSSL": FixMatchCCSSL,
     "CoMatchCCSSL":CoMatchCCSSL,
+    "PCL": PCL,
 }
 
 
@@ -28,5 +30,6 @@ def build(cfg):
         other configs will be used as parameters
     """
     trainer_cfg = deepcopy(cfg)
+    # print(trainer_cfg)
     type_name = trainer_cfg.pop("type")
     return partial(meta_archs[type_name], cfg=trainer_cfg)

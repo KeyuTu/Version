@@ -48,6 +48,7 @@ class BaseTransform(object):
         trans_funcs = []
         for trans_cfg in trans_list:
             trans_funcs.append(get_trans(trans_cfg))
+        # print(trans_funcs)
         return transforms.Compose(trans_funcs)
 
     def __call__(self, data):

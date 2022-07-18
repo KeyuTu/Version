@@ -3,15 +3,12 @@
 
 train = dict(eval_step=1024,
              total_steps=1024*512,
-             trainer=dict(type="FixMatch",
+             trainer=dict(type="PCL",
                           threshold=0.6,
                           T=1.,
                           temperature=0.07,
                           lambda_u=1., # lambda_u
-                          # lambda_contrast=2, # lambda_c
-                          # contrast_with_softlabel=True,
-                          # contrast_left_out=True,
-                          # contrast_with_thresh=0.9, # T_push
+                          lambda_contrast=2,
                           loss_x=dict(
                               type="cross_entropy",
                               reduction="mean"),
@@ -23,11 +20,12 @@ num_classes = 128
 # seed = 1
 
 model = dict(
-     type="wideresnet",
-     depth=28,
-     num_classes=num_classes,
-     widen_factor=2,
-     dropout=0
+     type="resnet50",
+     low_dim=64,
+     num_class=num_classes,
+     proj=True,
+     width=1, 
+     in_channel=3
 )
 
 seminat_mean = (0.4732, 0.4828, 0.3779)
@@ -37,7 +35,7 @@ data = dict(
     type="DomainNet",
     num_workers=1,
     # num_worker = n_gpus
-    batch_size=12,
+    batch_size=10,
     l_anno_file="/data/tuky/DATASET/multi/l_train/anno.txt",
     u_anno_file="/data/tuky/DATASET/multi/u_train/u_train.txt",
     v_anno_file="/data/tuky/DATASET/multi/val/anno.txt",
@@ -53,6 +51,11 @@ data = dict(
 
     upipelinse=[[
         # weak augment
+        dict(type="RandomHorizontalFlip"),
+        dict(type="RandomCrop", size=32, padding=int(32 * 0.125), padding_mode='reflect'),
+        dict(type="ToTensor"),
+        dict(type="Normalize", mean=seminat_mean, std=seminat_std)],
+        [
         dict(type="RandomHorizontalFlip"),
         dict(type="RandomCrop", size=32, padding=int(32 * 0.125), padding_mode='reflect'),
         dict(type="ToTensor"),
@@ -84,7 +87,7 @@ amp = dict(use=False, opt_level="O1")
 
 log = dict(interval=64)
 ckpt = dict(interval=1000)
-# evaluation = dict(eval_both=True)
+evaluation = dict(eval_both=True)
 
 # optimizer
 optimizer = dict(type='SGD', lr=0.03, momentum=0.9, weight_decay=0.001, nesterov=True)
