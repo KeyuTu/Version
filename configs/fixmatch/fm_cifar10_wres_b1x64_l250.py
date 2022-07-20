@@ -19,6 +19,9 @@ this file is organized in the form of
     |-transforms
 |-other options
 """
+# from logging import root
+
+
 train = dict(eval_step=1024,
              total_steps=2**20,
              trainer=dict(type="FixMatch",
@@ -56,7 +59,8 @@ data = dict(
     expand_labels=False,
     mu=7,
 
-    root="./data/CIFAR",
+    # root="./data/CIFAR",
+    root = "/data/tuky/DATASET/CIFAR",
     lpipelines=[[
         dict(type="RandomHorizontalFlip"),
         dict(type="RandomCrop",

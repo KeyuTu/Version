@@ -8,10 +8,6 @@ train = dict(eval_step=1024,
                           T=1.,
                           temperature=0.07,
                           lambda_u=1., # lambda_u
-                          # lambda_contrast=2, # lambda_c
-                          # contrast_with_softlabel=True,
-                          # contrast_left_out=True,
-                          # contrast_with_thresh=0.9, # T_push
                           loss_x=dict(
                               type="cross_entropy",
                               reduction="mean"),
@@ -35,8 +31,8 @@ seminat_std = (0.2348, 0.2243, 0.2408)
 
 data = dict(
     type="DomainNet",
-    num_workers=1,
-    # num_worker = n_gpus
+    num_workers=4,
+    # num_worker = 工作进程
     batch_size=12,
     l_anno_file="/data/tuky/DATASET/multi/l_train/anno.txt",
     u_anno_file="/data/tuky/DATASET/multi/u_train/u_train.txt",

@@ -1,8 +1,8 @@
 # from numpy import deprecate_with_doc
 
 
-train = dict(eval_step=1024,
-             total_steps=1024*512,
+train = dict(eval_step=512,
+             total_steps=512*256,
              trainer=dict(type="PCL",
                           threshold=0.6,
                           T=1.,
@@ -33,39 +33,50 @@ seminat_std = (0.2348, 0.2243, 0.2408)
 
 data = dict(
     type="DomainNet",
-    num_workers=1,
+    num_workers=4,
     # num_worker = n_gpus
-    batch_size=10,
+    batch_size=1,
     l_anno_file="/data/tuky/DATASET/multi/l_train/anno.txt",
     u_anno_file="/data/tuky/DATASET/multi/u_train/u_train.txt",
     v_anno_file="/data/tuky/DATASET/multi/val/anno.txt",
-    mu=10,
+    mu=8,
     # mu = labeled / unlabeled
 
     lpipelines=[[
         dict(type="RandomHorizontalFlip"),
-        dict(type="RandomCrop", size=32, padding=int(32 * 0.125), padding_mode='reflect'),
+        # dict(type="RandomCrop", size=32, padding=int(32 * 0.125), padding_mode='reflect'),
+        dict(type="RandomResizedCrop", size=224, scale=(0.2, 1.0)),
         dict(type="ToTensor"),
         dict(type="Normalize", mean=seminat_mean, std=seminat_std)
     ]],
 
     upipelinse=[[
-        # weak augment
-        dict(type="RandomHorizontalFlip"),
-        dict(type="RandomCrop", size=32, padding=int(32 * 0.125), padding_mode='reflect'),
-        dict(type="ToTensor"),
-        dict(type="Normalize", mean=seminat_mean, std=seminat_std)],
+            dict(type="RandomHorizontalFlip"),
+            dict(type="Resize", size=256),
+            dict(type="CenterCrop", size=224),
+            dict(type="ToTensor"),
+            dict(type="Normalize", mean=seminat_mean, std=seminat_std)],
         [
-        dict(type="RandomHorizontalFlip"),
-        dict(type="RandomCrop", size=32, padding=int(32 * 0.125), padding_mode='reflect'),
-        dict(type="ToTensor"),
-        dict(type="Normalize", mean=seminat_mean, std=seminat_std)],
+            dict(type="RandomResizedCrop", size=224, scale=(0.2, 1.0)),
+            dict(type="RandomHorizontalFlip"),
+            dict(type="RandomApply", 
+                transforms=[
+                    dict(type="ColorJitter",
+                         brightness=0.4,
+                         contrast=0.4,
+                         saturation=0.4,
+                         hue=0.1),
+                         ],
+                         p=0.8),
+
+            dict(type="RandomGrayscale", p=0.2),
+            dict(type="ToTensor")],
         [
-        dict(type="RandomHorizontalFlip"),
-        dict(type="RandomCrop", size=32, padding=int(32 * 0.125), padding_mode='reflect'),
-        dict(type="RandAugmentMC", n=2, m=10),
-        dict(type="ToTensor"),
-        dict(type="Normalize", mean=seminat_mean, std=seminat_std)]],
+            dict(type="RandomHorizontalFlip"),
+            dict(type="RandomResizedCrop", size=224, scale=(0.2, 1.0)),
+            dict(type="RandAugmentMC", n=2, m=10),
+            dict(type="ToTensor"),
+            dict(type="Normalize", mean=seminat_mean, std=seminat_std)]],
     
     vpipeline=[
         dict(type="Resize", size=256),

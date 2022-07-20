@@ -30,6 +30,7 @@ class SoftSupConLoss(nn.Module):
         Returns:
             A loss scalar.
         """
+
         device = (torch.device('cuda')
                   if features.is_cuda
                   else torch.device('cpu'))
@@ -46,6 +47,7 @@ class SoftSupConLoss(nn.Module):
         elif labels is None and mask is None:
             mask = torch.eye(batch_size, dtype=torch.float32).to(device)
         elif labels is not None and select_matrix is not None:
+            # Fixmatch+CCSSL entrances
             labels = labels.contiguous().view(-1, 1)
             if labels.shape[0] != batch_size:
                 raise ValueError('Num of labels does not match num of features')
@@ -67,7 +69,10 @@ class SoftSupConLoss(nn.Module):
             mask = mask.float().to(device)
 
         contrast_count = features.shape[1]
+        # contrast_count = 2
+        # features = [100, 2, 64]
         contrast_feature = torch.cat(torch.unbind(features, dim=1), dim=0)
+        # contrast_feature = [200, 64]
         if self.contrast_mode == 'one':
             anchor_feature = features[:, 0]
             anchor_count = 1
@@ -81,12 +86,15 @@ class SoftSupConLoss(nn.Module):
         anchor_dot_contrast = torch.div(
             torch.matmul(anchor_feature, contrast_feature.T),
             self.temperature)
+        # anchor_dot_contrast = [200, 200]
         # for numerical stability
         logits_max, _ = torch.max(anchor_dot_contrast, dim=1, keepdim=True)
+        # logits_max = [200, 1]
         logits = anchor_dot_contrast - logits_max.detach()
 
         # tile mask
         mask = mask.repeat(anchor_count, contrast_count)
+        # mask = [100, 100] --> [200, 200]
         # mask-out self-contrast cases
         logits_mask = torch.scatter(
             torch.ones_like(mask),
@@ -94,6 +102,7 @@ class SoftSupConLoss(nn.Module):
             torch.arange(batch_size * anchor_count).view(-1, 1).to(device),
             0
         )
+        # logits_mask = [200, 200] 屏蔽self-contrast的情况
         mask = mask * logits_mask
         # compute log_prob
         exp_logits = torch.exp(logits) * logits_mask

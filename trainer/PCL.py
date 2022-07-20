@@ -48,17 +48,6 @@ class PCL(Trainer):
             probs = probs.detach()
         return probs
     
-    def _get_pseudo_label_acc(self, p_targets_u, mask, targets_u):
-        targets_u = targets_u.to(self.device)
-        right_labels = (p_targets_u == targets_u).float() * mask
-        pseudo_label_acc = right_labels.sum() / max(mask.sum(), 1.0)
-        return pseudo_label_acc
-
-    def _get_psuedo_label_and_mask(self, probs_u_w):
-        max_probs, p_targets_u = torch.max(probs_u_w, dim=-1)
-        mask = max_probs.ge(self.cfg.threshold).float()
-        return p_targets_u, mask
-
     def compute_loss(self,
                      data_x,
                      data_u,
@@ -90,45 +79,45 @@ class PCL(Trainer):
             del features
             del _
 
-            Lx = self.loss_x(logits_x, targets_x, reduction='mean')
-            if not self.da:
-                prob_u_w = torch.softmax(logits_u_w.detach() / self.cfg.T, dim=-1)
-            else:
-                prob_u_w = self._da_pseudo_label(logits_u_w)
+        Lx = self.loss_x(logits_x, targets_x, reduction='mean')
+        if not self.da:
+            prob_u_w = torch.softmax(logits_u_w.detach() / self.cfg.T, dim=-1)
+        else:
+            prob_u_w = self._da_pseudo_label(logits_u_w)
 
-            max_probs, p_targets_u = torch.max(prob_u_w, dim=-1)
-            mask = max_probs.ge(self.cfg.threshold).float()
-            Lu = (self.loss_u(logits_u_s, p_targets_u, reduction='none') *
-                  mask).mean()
-            
-            labels = p_targets_u
-            features = torch.cat([f_u_s.unsqueeze(1), f_u_s1.unsqueeze(1)], dim=1)
-            
-            Lcontrast = self.loss_contrast(features, labels)
+        max_probs, p_targets_u = torch.max(prob_u_w, dim=-1)
+        mask = max_probs.ge(self.cfg.threshold).float()
+        Lu = (self.loss_u(logits_u_s, p_targets_u, reduction='none') *
+                mask).mean()
+        
+        labels = p_targets_u
+        features = torch.cat([f_u_s.unsqueeze(1), f_u_s1.unsqueeze(1)], dim=1)
+        
+        Lcontrast = self.loss_contrast(features, max_probs=max_probs, labels=labels)
 
-            loss = Lx + self.cfg.lambda_u * Lu + self.cfg.lambda_contrast * Lcontrast
+        loss = Lx + self.cfg.lambda_u * Lu + self.cfg.lambda_contrast * Lcontrast
 
-            if hasattr(self, "amp"):
-                with self.amp.scale_loss(loss, optimizer) as scaled_loss:
-                    scaled_loss.backward()
-            elif "SCALER" in kwargs and kwargs["SCALER"] is not None:
-                kwargs['SCALER'].scale(loss).backward()
-            else:
-                # entrance
-                loss.backward()
+        if hasattr(self, "amp"):
+            with self.amp.scale_loss(loss, optimizer) as scaled_loss:
+                scaled_loss.backward()
+        elif "SCALER" in kwargs and kwargs["SCALER"] is not None:
+            kwargs['SCALER'].scale(loss).backward()
+        else:
+            # entrance
+            loss.backward()
 
-            targets_u = targets_u.to(self.device)
-            right_labels = (p_targets_u == targets_u).float() * mask
-            pseudo_label_acc = right_labels.sum() / max(mask.sum(), 1.0)
+        targets_u = targets_u.to(self.device)
+        right_labels = (p_targets_u == targets_u).float() * mask
+        pseudo_label_acc = right_labels.sum() / max(mask.sum(), 1.0)
 
-            loss_dict = {
-                "loss": loss,
-                "loss_x": Lx,
-                "loss_u": Lu,
-                "loss_contrast": Lcontrast,
-                "mask_prob": mask.mean(),
-                "pseudo_acc": pseudo_label_acc,
-            }
+        loss_dict = {
+            "loss": loss,
+            "loss_x": Lx,
+            "loss_u": Lu,
+            "loss_contrast": Lcontrast,
+            "mask_prob": mask.mean(),
+            "pseudo_acc": pseudo_label_acc,
+        }
 
         return loss_dict
 

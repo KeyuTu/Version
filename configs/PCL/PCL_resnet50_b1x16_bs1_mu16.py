@@ -7,7 +7,7 @@ num of GPUs: 1
 mu: 10
 """
 
-from turtle import width
+# from turtle import width
 
 
 train = dict(eval_step=1024,
@@ -73,21 +73,7 @@ data = dict(
             dict(type="ToTensor"),
             dict(type="Normalize", mean=multi_mean, std=multi_std)
     ]],
-                # [
-                #     dict(type="RandomResizedCrop", size=224, scale=(0.2, 1.0)),
-                #     dict(type="RandomHorizontalFlip"),
-                #     dict(type="RandomApply",
-                #          transforms=[
-                #              dict(type="ColorJitter",
-                #                   brightness=0.4,
-                #                   contrast=0.4,
-                #                   saturation=0.4,
-                #                   hue=0.1),
-                #          ],
-                #          p=0.8),
-                #     dict(type="RandomGrayscale", p=0.2),
-                #     dict(type="ToTensor")
-                # ]],
+
     vpipeline=[
         dict(type="Resize", size=256),
         dict(type="CenterCrop", size=224),
