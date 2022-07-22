@@ -21,7 +21,8 @@ num_classes = 128
 
 model = dict(
      type="resnet50",
-     low_dim=64,
+     # low_dim=64,
+     low_dim=128,
      num_class=num_classes,
      proj=True,
      width=1, 

@@ -52,8 +52,10 @@ class TxtDataset(datasets.VisionDataset):
         path, target = self.samples[index]
         sample = self.loader(path)
         if self.transform is not None:
+            # print(self.transform)
             sample = self.transform(sample)
         if self.target_transform is not None:
+            # print(self.target_transform)
             target = self.target_transform(target)
 
         return sample, target

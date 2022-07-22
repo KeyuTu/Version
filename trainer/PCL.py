@@ -1,15 +1,20 @@
+"""
+The Implementation is based on Pytorch
+"""
+
 from cmath import log
-import imp
 import torch
 import torch.nn.functional as F
 from loss import builder as loss_builder
 from loss.soft_supconloss import SoftSupConLoss
+
 from .base_trainer import Trainer
 
 class PCL(Trainer):
     
     def __init__(self, cfg, device, all_cfg, **kwargs):
         super().__init__(cfg=cfg)
+
         self.all_cfg = all_cfg
         self.device = device
         if self.cfg.amp:
@@ -26,7 +31,7 @@ class PCL(Trainer):
     def _get_config(self):
         if self.all_cfg.get("ema", False):
             self.pseudo_with_ema = self.all_cfg.ema.get(
-                "pseudo_with_ema", False)
+                "``pseudo_with_ema``", False)
 
         # distribution alignment mentioned in paper
         self.prob_list = []
@@ -43,6 +48,8 @@ class PCL(Trainer):
             if len(prob_list) > self.cfg.DA.da_len:
                 prob_list.pop(0)
             prob_avg = torch.stack(prob_list, dim=0).mean(0)
+            # print(prob_avg.shape)
+            # exit()
             probs = probs / prob_avg
             probs = probs / probs.sum(dim=1, keepdim=True)
             probs = probs.detach()
@@ -71,6 +78,8 @@ class PCL(Trainer):
             inputs = torch.cat([inputs_x, inputs_u_w, inputs_u_s, inputs_u_s1],
                                 dim=0).to(self.device)
             logits, features = model(inputs)
+            print(features.shape)
+            exit()
             
             logits_x = logits[:batch_size]
             logits_u_w, logits_u_s, _ = logits[batch_size:].chunk(3)

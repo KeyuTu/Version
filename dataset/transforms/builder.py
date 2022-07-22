@@ -48,6 +48,7 @@ class BaseTransform(object):
         trans_funcs = []
         for trans_cfg in trans_list:
             trans_funcs.append(get_trans(trans_cfg))
+            # print(trans_cfg)
         # print(trans_funcs)
         return transforms.Compose(trans_funcs)
 
@@ -67,6 +68,7 @@ class ListTransform(BaseTransform):
         self.pipelines = pipelines
         self.transforms = []
         for trans_dict in self.pipelines:
+            # print(trans_dict)
             self.transforms.append(self.init_trans(trans_dict))
 
     def __call__(self, data):

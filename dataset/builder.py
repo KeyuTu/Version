@@ -58,8 +58,14 @@ def build(cfg):
 
     elif cfg.type == "TxtDatasetSSL":
         transform_labeled = ListTransform(cfg.lpipelines)
+        # print(transform_labeled)
+        # print("\n")
         transform_ulabeled = ListTransform(cfg.upipelinse)
+        # print(transform_ulabeled)
+        # print("\n")
         transform_val = BaseTransform(cfg.vpipeline)
+        # print(transform_val)
+        # exit()
         return get_txt_ssl_dataset(
             l_anno_file=cfg.l_anno_file,
             u_anno_file=cfg.u_anno_file,
