@@ -3,10 +3,12 @@ The Implementation is based on Pytorch
 """
 
 from cmath import log
+from multiprocessing import reduction
 import torch
 import torch.nn.functional as F
 from loss import builder as loss_builder
 from loss.soft_supconloss import SoftSupConLoss
+from loss.contrast_loss import contrast_loss
 
 from .base_trainer import Trainer
 
@@ -22,7 +24,9 @@ class PCL(Trainer):
             self.amp = amp
         self.loss_x = loss_builder.build(cfg.loss_x)
         self.loss_u = loss_builder.build(cfg.loss_u)
-        self.loss_contrast = SoftSupConLoss(temperature=self.cfg.temperature)
+        # self.loss_contrast = SoftSupConLoss(temperature=self.cfg.temperature)
+        self.loss_contrast = contrast_loss(batch_size=all_cfg.data.batch_size, mu=all_cfg.data.mu)
+
 
         self.pseudo_with_ema = False
         self.da = False
@@ -75,14 +79,12 @@ class PCL(Trainer):
         else:
             inputs = torch.cat([inputs_x, inputs_u_w, inputs_u_s, inputs_u_s1],
                                 dim=0).to(self.device)
-            logits, features = model(inputs)
+            logits = model(inputs)
 
             logits_x = logits[:batch_size]
-            logits_u_w, logits_u_s, _ = logits[batch_size:].chunk(3)
-            _, f_u_s, f_u_s1 = features[batch_size:].chunk(3)
+            logits_u_w, logits_u_s, logits_u_s1 = torch.tensor(logits[batch_size:]).chunk(3)
+            # _, f_u_s, f_u_s1 = features[batch_size:].chunk(3)
             del logits
-            del features
-            del _
 
         Lx = self.loss_x(logits_x, targets_x, reduction='mean')
         # print(Lx)
@@ -93,15 +95,17 @@ class PCL(Trainer):
 
         max_probs, p_targets_u = torch.max(prob_u_w, dim=-1)
         mask = max_probs.ge(self.cfg.threshold).float()
-        Lu = (self.loss_u(logits_u_s, p_targets_u, reduction='none') *
-                mask).mean()
+        Lu1 = (self.loss_u(logits_u_s, p_targets_u, reduction='none') * mask).mean()
+        Lu2 = (self.loss_u(logits_u_s1, p_targets_u, reduction='none') * mask).mean()
         
-        labels = p_targets_u
-        features = torch.cat([f_u_s.unsqueeze(1), f_u_s1.unsqueeze(1)], dim=1)
-        
-        Lcontrast = self.loss_contrast(features, max_probs=max_probs, labels=labels)
+        # labels = p_targets_u
+        # features = torch.cat([f_u_s.unsqueeze(1), f_u_s1.unsqueeze(1)], dim=1)
+        # Lcontrast = self.loss_contrast(features, max_probs=max_probs, labels=labels)
+        logits_u = torch.cat([logits_u_s, logits_u_s1])
+        Lcontrast = self.loss_contrast(logits_u)
 
-        loss = Lx + self.cfg.lambda_u * Lu + self.cfg.lambda_contrast * Lcontrast
+        Lu = Lu1 + Lu2
+        loss = Lx + self.cfg.lambda_u * Lu * 0.5+ self.cfg.lambda_contrast * Lcontrast
 
         if hasattr(self, "amp"):
             with self.amp.scale_loss(loss, optimizer) as scaled_loss:
@@ -115,6 +119,7 @@ class PCL(Trainer):
         targets_u = targets_u.to(self.device)
         right_labels = (p_targets_u == targets_u).float() * mask
         pseudo_label_acc = right_labels.sum() / max(mask.sum(), 1.0)
+        
 
         loss_dict = {
             "loss": loss,

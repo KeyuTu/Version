@@ -4,7 +4,7 @@
 train = dict(eval_step=1024,
              total_steps=2**20,
              trainer=dict(type="PCL",
-                          threshold=0.95,
+                          threshold=0.80,
                           T=1.,
                           temperature=0.07,
                           lambda_u=1., # lambda_u
@@ -19,24 +19,31 @@ train = dict(eval_step=1024,
 num_classes = 126
 # seed = 1
 
+# model = dict(
+#      type="resnet50",
+#      low_dim=64,
+#      # low_dim=126,
+#      num_class=num_classes,
+#      proj=True,
+#      width=1, 
+#      in_channel=3
+# )
 model = dict(
-     type="resnet50",
-     # low_dim=64,
-     low_dim=126,
-     num_class=num_classes,
-     proj=True,
-     width=1, 
-     in_channel=3
+     type="wideresnet",
+     depth=28,
+     num_classes=num_classes,
+     widen_factor=2,
+     dropout=0
 )
 
-seminat_mean = (0.4732, 0.4828, 0.3779)
-seminat_std = (0.2348, 0.2243, 0.2408)
+multi_mean = (0.4732, 0.4828, 0.3779)
+multi_std = (0.2348, 0.2243, 0.2408)
 
 data = dict(
     type="DomainNet",
     num_workers=4,
     # num_worker = n_gpus
-    batch_size=16,
+    batch_size=8,
     l_anno_file="/data/tuky/DATASET/multi/l_train/anno.txt",
     u_anno_file="/data/tuky/DATASET/multi/u_train/u_train.txt",
     v_anno_file="/data/tuky/DATASET/multi/val/anno.txt",
@@ -45,21 +52,27 @@ data = dict(
 
     lpipelines=[[
         dict(type="RandomHorizontalFlip"),
-        # dict(type="RandomCrop", size=32, padding=int(32 * 0.125), padding_mode='reflect'),
-        dict(type="RandomResizedCrop", size=224, scale=(0.2, 1.0)),
+        # 随机水平翻转
+        dict(type="RandomCrop", size=64, padding=int(32 * 0.125), padding_mode='reflect'),
+        # dict(type="RandomResizedCrop", size=224, scale=(0.2, 1.0)),
+        # 随机剪裁一个area，再进行resize
         dict(type="ToTensor"),
-        dict(type="Normalize", mean=seminat_mean, std=seminat_std)
+        dict(type="Normalize", mean=multi_mean, std=multi_std)
     ]],
 
-    upipelinse=[[
+    upipelinse=[[#weak 1
             dict(type="RandomHorizontalFlip"),
             dict(type="Resize", size=256),
-            dict(type="CenterCrop", size=224),
+            dict(type="CenterCrop", size=64),
+            # dict(type="CenterCrop", size=224),
+            # 从中心裁剪图片成为所需的尺寸
             dict(type="ToTensor"),
-            dict(type="Normalize", mean=seminat_mean, std=seminat_std)],
-        [
-            dict(type="RandomResizedCrop", size=224, scale=(0.2, 1.0)),
+            dict(type="Normalize", mean=multi_mean, std=multi_std)],
+        [ #strong 1
+            dict(type="RandomResizedCrop", size=64, scale=(0.2, 1.0)),
+            # dict(type="RandomResizedCrop", size=224, scale=(0.2, 1.0)),
             dict(type="RandomHorizontalFlip"),
+            dict(type="RandAugmentMC", n=2, m=10),
             dict(type="RandomApply", 
                 transforms=[
                     dict(type="ColorJitter",
@@ -71,19 +84,33 @@ data = dict(
                          p=0.8),
 
             dict(type="RandomGrayscale", p=0.2),
-            dict(type="ToTensor")],
-        [
-            dict(type="RandomHorizontalFlip"),
-            dict(type="RandomResizedCrop", size=224, scale=(0.2, 1.0)),
-            dict(type="RandAugmentMC", n=2, m=10),
             dict(type="ToTensor"),
-            dict(type="Normalize", mean=seminat_mean, std=seminat_std)]],
+            dict(type="Normalize", mean=multi_mean, std=multi_std)],
+        [ #strong 2
+            dict(type="RandomResizedCrop", size=64, scale=(0.2, 1.0)),
+            # dict(type="RandomResizedCrop", size=224, scale=(0.2, 1.0)),
+            dict(type="RandomHorizontalFlip"),
+            dict(type="RandAugmentMC", n=2, m=10),
+            dict(type="RandomApply", 
+                transforms=[
+                    dict(type="ColorJitter",
+                         brightness=0.4,
+                         contrast=0.4,
+                         saturation=0.4,
+                         hue=0.1),
+                         ],
+                         p=0.8),
+
+            dict(type="RandomGrayscale", p=0.2),
+            dict(type="ToTensor"),
+            dict(type="Normalize", mean=multi_mean, std=multi_std)]],
     
     vpipeline=[
         dict(type="Resize", size=256),
-        dict(type="CenterCrop", size=224),
+        dict(type="CenterCrop", size=64),
+        # dict(type="CenterCrop", size=224),
         dict(type="ToTensor"),
-        dict(type="Normalize", mean=seminat_mean, std=seminat_std)
+        dict(type="Normalize", mean=multi_mean, std=multi_std)
     ])
 
 scheduler = dict(
