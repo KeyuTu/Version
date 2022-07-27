@@ -54,8 +54,8 @@ seminat_std = [0.2348, 0.2243, 0.2408]
 
 data = dict(
     type="DomainNet",
-    num_workers=1,
-    batch_size=4,
+    num_workers=4,
+    batch_size=1,
     l_anno_file="/data/tuky/DATASET/multi/l_train/anno.txt",
     u_anno_file="/data/tuky/DATASET/multi/u_train/u_train.txt",
     v_anno_file="/data/tuky/DATASET/multi/val/anno.txt",

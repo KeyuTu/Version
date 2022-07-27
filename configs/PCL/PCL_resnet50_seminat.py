@@ -19,8 +19,8 @@ this file is organized in the form of
 |-other options
 
 """
-train = dict(eval_step=1024,
-             total_steps=1024*512,
+train = dict(eval_step=256,
+             total_steps=256*512,
              trainer=dict(type="PCL",
                           threshold=0.6,
                           T=1.,

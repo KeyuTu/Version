@@ -1,10 +1,10 @@
 # from numpy import deprecate_with_doc
 
 
-train = dict(eval_step=512,
-             total_steps=512*256,
+train = dict(eval_step=1024,
+             total_steps=2**20,
              trainer=dict(type="PCL",
-                          threshold=0.6,
+                          threshold=0.95,
                           T=1.,
                           temperature=0.07,
                           lambda_u=1., # lambda_u
@@ -16,13 +16,13 @@ train = dict(eval_step=512,
                               type="cross_entropy",
                               reduction="none"),
                           ))
-num_classes = 128
+num_classes = 126
 # seed = 1
 
 model = dict(
      type="resnet50",
      # low_dim=64,
-     low_dim=128,
+     low_dim=126,
      num_class=num_classes,
      proj=True,
      width=1, 
@@ -36,11 +36,11 @@ data = dict(
     type="DomainNet",
     num_workers=4,
     # num_worker = n_gpus
-    batch_size=1,
+    batch_size=16,
     l_anno_file="/data/tuky/DATASET/multi/l_train/anno.txt",
     u_anno_file="/data/tuky/DATASET/multi/u_train/u_train.txt",
     v_anno_file="/data/tuky/DATASET/multi/val/anno.txt",
-    mu=8,
+    mu=7,
     # mu = labeled / unlabeled
 
     lpipelines=[[
@@ -97,7 +97,7 @@ ema = dict(use=True, pseudo_with_ema=False, decay=0.999)
 #"See details at https://nvidia.github.io/apex/amp.html
 amp = dict(use=False, opt_level="O1")
 
-log = dict(interval=64)
+log = dict(interval=1)
 ckpt = dict(interval=1000)
 evaluation = dict(eval_both=True)
 

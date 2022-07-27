@@ -585,6 +585,7 @@ def test(args, test_loader, model, epoch):
             inputs = inputs.to(args.device)
             targets = targets.to(args.device)
             outputs = model(inputs)
+
             if isinstance(outputs, tuple):
                 outputs = outputs[0]
             loss = F.cross_entropy(outputs, targets)

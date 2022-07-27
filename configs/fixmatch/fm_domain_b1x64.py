@@ -2,11 +2,11 @@
 
 
 train = dict(eval_step=1024,
-             total_steps=1024*512,
+             total_steps=2**20,
              trainer=dict(type="FixMatch",
                           threshold=0.6,
                           T=1.,
-                          temperature=0.07,
+                          # temperature=0.07,
                           lambda_u=1., # lambda_u
                           loss_x=dict(
                               type="cross_entropy",
@@ -15,7 +15,7 @@ train = dict(eval_step=1024,
                               type="cross_entropy",
                               reduction="none"),
                           ))
-num_classes = 128
+num_classes = 126
 # seed = 1
 
 model = dict(
@@ -33,11 +33,11 @@ data = dict(
     type="DomainNet",
     num_workers=4,
     # num_worker = 工作进程
-    batch_size=12,
+    batch_size=32,
     l_anno_file="/data/tuky/DATASET/multi/l_train/anno.txt",
     u_anno_file="/data/tuky/DATASET/multi/u_train/u_train.txt",
     v_anno_file="/data/tuky/DATASET/multi/val/anno.txt",
-    mu=10,
+    mu=7,
     # mu = labeled / unlabeled
 
     lpipelines=[[
@@ -78,7 +78,7 @@ ema = dict(use=True, pseudo_with_ema=False, decay=0.999)
 #"See details at https://nvidia.github.io/apex/amp.html
 amp = dict(use=False, opt_level="O1")
 
-log = dict(interval=64)
+log = dict(interval=1)
 ckpt = dict(interval=1000)
 # evaluation = dict(eval_both=True)
 

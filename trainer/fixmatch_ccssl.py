@@ -122,6 +122,7 @@ class FixMatchCCSSL(Trainer):
             del _
 
         Lx = self.loss_x(logits_x, targets_x, reduction='mean')
+        # print(Lx)
         # LOSS FOR LABELED DATA
         if not self.da:
             # entrance
